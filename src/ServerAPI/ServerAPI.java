@@ -66,6 +66,7 @@ public class ServerAPI {
             if ("WrongPassword".equals(response)){
                 throw new WrongPassword();
             }
+            new MessageReceiver().run();
             logged = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,16 +89,22 @@ public class ServerAPI {
     }
 
     public synchronized void addMessageListener(MessageListener listener){
-        this.listeners.add(listener);
+        synchronized (listeners) {
+            this.listeners.add(listener);
+        }
     }
 
     public synchronized void removeMessageListener(MessageListener listener){
-        this.listeners.remove(listener);
+        synchronized (listeners) {
+            this.listeners.remove(listener);
+        }
     }
 
     private synchronized void notifyListeners(Message message) {
-        for(MessageListener listener : listeners) {
-            listener.messageReceived(message);
+        synchronized (listeners) {
+            for (MessageListener listener : listeners) {
+                listener.messageReceived(message);
+            }
         }
     }
 
