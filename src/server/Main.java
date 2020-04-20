@@ -7,11 +7,10 @@ import java.net.Socket;
 import java.util.HashMap;
 
 public class Main {
-    private static final int PORT = 775;
+    private static final int PORT = 1155;
     UsersHandler usersHandler  = new UsersHandler();
 
     public static void main(String[] args){
-        System.out.println("Hello world!");
         new Main().run();
         System.out.println("server GG");
     }
@@ -23,7 +22,7 @@ public class Main {
             while (true) {
                 try {
                     Socket socket = serverSocket.accept();
-                    new UserThread(socket, usersHandler);
+                    new UserThread(socket, usersHandler).start();
 
                 } catch (IOException exc) {
                     exc.printStackTrace();

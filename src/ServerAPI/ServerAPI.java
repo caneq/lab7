@@ -12,7 +12,7 @@ import java.util.LinkedList;
 
 public class ServerAPI {
     private final String HOST = "localhost";
-    private final int PORT = 775;
+    private final int PORT = 1155;
     private Socket socket;
 
     LinkedList<MessageListener> listeners;
@@ -25,6 +25,7 @@ public class ServerAPI {
     private String userName = "";
 
     public ServerAPI(){
+        listeners = new LinkedList();
         try {
             socket = new Socket(HOST, PORT);
             objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -78,10 +79,10 @@ public class ServerAPI {
                 logged = true;
             }
 
-            if ("WrongLogin".equals(response)){
+            else if ("WrongLogin".equals(response)){
                 throw new WrongLogin();
             }
-            if ("WrongPassword".equals(response)){
+            else if ("WrongPassword".equals(response)){
                 throw new WrongPassword();
             }
 
@@ -94,7 +95,7 @@ public class ServerAPI {
         }
     }
 
-    public void sendMessage(Message message) throws UserNotFound {
+    public void sendMessage(Message message) {
         try {
             message.sender = userName;
             objectOutputStream.writeObject(message);
@@ -142,17 +143,24 @@ public class ServerAPI {
             while(true){
                 try {
                     Message message = (Message) objectInputStream.readObject();
-                    if("SERVER".equals(message.sender)) {
-                        if("userNotFound".equals(message.message)){
-                            //TODO
-                        }
-                    }
+                    //if("SERVER".equals(message.sender)) {
+                    //    if("userNotFound".equals(message.message)){
+                    //
+                    //   }
+                    //}
                     notifyListeners(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
+
                 } catch (ClassNotFoundException e) {
+                    notifyListeners(new Message("SERVER", userName, "UnknownError"));
                     e.printStackTrace();
+                    logged = false;
+                    break;
+                } catch (IOException e) {
+                    notifyListeners(new Message("SERVER", userName, "ConectionClosed"));
+                    logged = false;
+                    break;
                 }
+
             }
         }
     }
