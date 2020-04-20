@@ -1,7 +1,5 @@
 package ServerAPI;
 
-import client.ServerAPI;
-
 public class Message {
     public String sender;
     public String receiver;
