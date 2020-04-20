@@ -13,21 +13,22 @@ import java.util.LinkedList;
 public class ServerAPI {
     private final String HOST = "localhost";
     private final int PORT = 775;
-    LinkedList<MessageListener> listeners;
     private Socket socket;
-    private OutputStream outputStream;
-    private InputStream inputStream;
-    private BufferedWriter outputWriter;
-    private BufferedReader inputReader;
-    private Boolean logged = false;
+
+    LinkedList<MessageListener> listeners;
+
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
+
+    private boolean logged = false;
+
+    private String userName = "";
 
     public ServerAPI(){
         try {
             socket = new Socket(HOST, PORT);
-            outputStream = socket.getOutputStream();
-            inputStream = socket.getInputStream();
-            outputWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-            inputReader = new BufferedReader(new InputStreamReader(inputStream));
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         }
         catch (UnknownHostException exc) {
             exc.printStackTrace();
@@ -39,15 +40,26 @@ public class ServerAPI {
     }
 
     public void register(String login, String password) throws LoginAlreadyRegistered {
-        try {
-            outputWriter.write("reg " + login + ":" + password);
-            outputWriter.flush();
+        if (logged) return;
 
-            String response = inputReader.readLine();
-            if ("alreadyRegistered".equals(response)){
+        try {
+            Message message = new Message(userName, "SERVER", "register " + login + " " + password);
+            objectOutputStream.writeObject(message);
+
+            Message response = (Message) objectInputStream.readObject();
+            if (response.message.equals("OK")){
+                userName = login;
+                logged = true;
+                new MessageReceiver().start();
+            }
+
+            if ("alreadyRegistered".equals(response)) {
                 throw new LoginAlreadyRegistered();
             }
+
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -56,33 +68,36 @@ public class ServerAPI {
         if (logged) return;
 
         try {
-            outputWriter.write("login " + login + ":" + password);
-            outputWriter.flush();
 
-            String response = inputReader.readLine();
+            Message message = new Message("", "SERVER", "login " + login + " " + password);
+            objectOutputStream.writeObject(message);
+
+            String response = ((Message) objectInputStream.readObject()).message;
+            if (response.equals("OK")){
+                userName = login;
+                logged = true;
+            }
+
             if ("WrongLogin".equals(response)){
                 throw new WrongLogin();
             }
             if ("WrongPassword".equals(response)){
                 throw new WrongPassword();
             }
-            new MessageReceiver().run();
+
+            new MessageReceiver().start();
             logged = true;
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
     public void sendMessage(Message message) throws UserNotFound {
         try {
-            outputWriter.write("sendTo " + message.receiver + ":" + message.message);
-            outputWriter.flush();
-
-            String response = inputReader.readLine();
-            if("userNotFound".equals(response)){
-                throw new UserNotFound();
-            }
-
+            message.sender = userName;
+            objectOutputStream.writeObject(message);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,11 +135,18 @@ public class ServerAPI {
 
     private class MessageReceiver extends Thread{
         public MessageReceiver(){ }
+
+        @Override
         public void run() {
+            super.run();
             while(true){
                 try {
-                    ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                     Message message = (Message) objectInputStream.readObject();
+                    if("SERVER".equals(message.sender)) {
+                        if("userNotFound".equals(message.message)){
+                            //TODO
+                        }
+                    }
                     notifyListeners(message);
                 } catch (IOException e) {
                     e.printStackTrace();
