@@ -1,13 +1,15 @@
 package server;
 
+import ServerAPI.Excepsions.LoginAlreadyRegistered;
 import ServerAPI.Excepsions.UserNotFound;
+import ServerAPI.Excepsions.WrongLogin;
+import ServerAPI.Excepsions.WrongPassword;
 import ServerAPI.Message;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class UserThread extends Thread {
     private UsersHandler usersHandler;
@@ -18,7 +20,7 @@ public class UserThread extends Thread {
     private String userName;
 
     UserThread(Socket socket, UsersHandler usersHandler){
-        System.out.println("UserThread ctor");
+        System.out.println("new user connected");
         this.usersHandler = usersHandler;
         this.socket = socket;
         try {
@@ -29,7 +31,7 @@ public class UserThread extends Thread {
         }
     }
 
-    public void Send(Message message) throws UserNotFound {
+    public void send(Message message) throws UserNotFound {
         if(!logged) {
             throw new UserNotFound();
         }
@@ -40,25 +42,42 @@ public class UserThread extends Thread {
         }
     }
 
-    private void processSystemMessage(Message message) throws IOException {
-        String[] args = message.message.split(" ");
-        if(args[0].equals("login")){
-            if(usersHandler.logIn(args[1], args[2])){
-                userName = args[1];
-                System.out.println(userName + "logged in");
-                usersHandler.addUser(userName, this);
-                logged = true;
-                objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
-            }
+    private void sendSystemMessage(String message){
+        try {
+            objectOutputStream.writeObject(new Message("SERVER", userName, message));
+            System.out.println(userName + " " + message);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else if(args[0].equals("register")){
-            if(usersHandler.register(args[1], args[2])){
-                userName = args[1];
-                System.out.println(userName + "register and logged in");
-                usersHandler.addUser(userName, this);
-                logged = true;
-                objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
-            }
+    }
+
+    private void processSystemMessage(Message message) {
+        try {
+            String[] args = message.message.split(" ");
+            if (args[0].equals("login")) {
+                try {
+                    if (usersHandler.logIn(args[1], args[2], this)) {
+                        userName = args[1];
+                        logged = true;
+                        objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
+                    }
+                } catch (Exception e) {
+                    sendSystemMessage(e.getClass().getSimpleName());
+                }
+            } else if (args[0].equals("register")) {
+                try {
+                    if (usersHandler.register(args[1], args[2], this)) {
+                        userName = args[1];
+                        logged = true;
+                        objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
+                    }
+                } catch (Exception e) {
+                    sendSystemMessage(e.getClass().getSimpleName());
+                }
+            } else sendSystemMessage("CommandNotFound");
+        }
+        catch (Exception e){
+            sendSystemMessage("IncorrectServerCommand");
         }
     }
 
@@ -66,14 +85,9 @@ public class UserThread extends Thread {
         if(!logged) return;
         System.out.println(message.sender + " -> " + message.receiver + " : " + message.message);
         try {
-            usersHandler.findUser(message.receiver).Send(message);
-        } catch (UserNotFound userNotFound) {
-            Message systemMessage = new Message("SERVER", userName, "UserNotFound");
-            try {
-                objectOutputStream.writeObject(systemMessage);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            usersHandler.findUser(message.receiver).send(message);
+        } catch (Exception e) {
+            sendSystemMessage(e.getClass().getSimpleName());
         }
     }
 
@@ -84,7 +98,7 @@ public class UserThread extends Thread {
             try {
                 Message message = (Message) objectInputStream.readObject();
 
-                if (message.receiver.equals("SERVER") && !logged){
+                if (message.receiver.equals("SERVER")){
                     processSystemMessage(message);
                 }
                 else {
@@ -118,6 +132,7 @@ public class UserThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(userName + " disconnected");
     }
 
 }
