@@ -1,9 +1,6 @@
-package client;
+package ConsoleClient;
 
-import ServerAPI.Excepsions.LoginAlreadyRegistered;
-import ServerAPI.Excepsions.WrongLogin;
-import ServerAPI.Excepsions.WrongPassword;
-import ServerAPI.ServerAPI;
+import ServerAPI.MessengerClient;
 import ServerAPI.*;
 import java.util.Scanner;
 
@@ -21,7 +18,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
 
-        ServerAPI server = new ServerAPI();
+        MessengerClient server = new MessengerClient();
 
         while (true) {
             System.out.println("login or register");

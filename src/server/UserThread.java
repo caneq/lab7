@@ -1,9 +1,5 @@
 package server;
-
-import ServerAPI.Excepsions.LoginAlreadyRegistered;
 import ServerAPI.Excepsions.UserNotFound;
-import ServerAPI.Excepsions.WrongLogin;
-import ServerAPI.Excepsions.WrongPassword;
 import ServerAPI.Message;
 
 import java.io.IOException;

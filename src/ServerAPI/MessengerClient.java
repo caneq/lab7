@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
 import java.util.LinkedList;
 
-public class ServerAPI {
+public class MessengerClient {
     private final String HOST = "localhost";
     private final int PORT = 1155;
     private Socket socket;
@@ -22,7 +22,7 @@ public class ServerAPI {
 
     private String userName = "";
 
-    public ServerAPI(){
+    public MessengerClient(){
         listeners = new LinkedList();
         try {
             socket = new Socket(HOST, PORT);
