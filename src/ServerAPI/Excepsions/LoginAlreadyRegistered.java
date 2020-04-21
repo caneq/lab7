@@ -1,7 +1,5 @@
 package ServerAPI.Excepsions;
 
-import ServerAPI.ServerAPI;
-
 public class LoginAlreadyRegistered  extends Exception{
     public LoginAlreadyRegistered() {}
 

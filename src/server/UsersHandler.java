@@ -1,17 +1,19 @@
 package server;
 
-import ServerAPI.Excepsions.UserNotFound;
+import ServerAPI.Excepsions.*;
 
 import java.util.HashMap;
 
 public class UsersHandler {
+    private UserAuthorizator userAuthorizator;
     private HashMap<String, UserThread> userThreads;
 
-    UsersHandler() {
+    UsersHandler(UserAuthorizator userAuthorizator) {
         userThreads = new HashMap();
+        this.userAuthorizator = userAuthorizator;
     }
 
-    public void addUser(String name, UserThread userThread){
+    private void addUser(String name, UserThread userThread){
         synchronized (userThreads){
             userThreads.put(name, userThread);
         }
@@ -33,25 +35,29 @@ public class UsersHandler {
         }
     }
 
-    public boolean logIn(String user, String password){
-        //TODO
-        UserThread userThread = userThreads.get(user);
-        if (userThread != null){
-            userThread.dispose();
-            userThread.interrupt();
+    public boolean logIn(String user, String password, UserThread thread) throws WrongPassword, UserAlreadyOnline, WrongLogin {
+        if(userAuthorizator.logIn(user, password)) {
+
+            if (userThreads.get(user) != null) {
+                throw new UserAlreadyOnline();
+            }
+            else{
+                System.out.println(user + " loggedIn");
+                addUser(user, thread);
+                return true;
+            }
+
         }
-        return true;
+        return false;
     }
 
-    public boolean register(String user, String password){
-        //TODO
-        UserThread userThread = userThreads.get(user);
-        if (userThread != null){
-            userThread.dispose();
-            userThread.interrupt();
+    public boolean register(String user, String password, UserThread thread) throws LoginAlreadyRegistered {
+        if(userAuthorizator.register(user, password)){
+            System.out.println(user + " registered and logged in");
+            addUser(user, thread);
+            return true;
         }
-
-        return true;
+        return false;
 
     }
 
