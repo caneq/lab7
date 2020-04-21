@@ -1,13 +1,11 @@
 package ServerAPI;
 
-import ServerAPI.Excepsions.LoginAlreadyRegistered;
-import ServerAPI.Excepsions.UserNotFound;
-import ServerAPI.Excepsions.WrongLogin;
-import ServerAPI.Excepsions.WrongPassword;
+import ServerAPI.Excepsions.*;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.net.UnknownServiceException;
 import java.util.LinkedList;
 
 public class ServerAPI {
@@ -40,22 +38,25 @@ public class ServerAPI {
         }
     }
 
-    public void register(String login, String password) throws LoginAlreadyRegistered {
-        if (logged) return;
+    public boolean register(String login, String password) throws LoginAlreadyRegistered {
+        if (logged) return false;
 
         try {
             Message message = new Message(userName, "SERVER", "register " + login + " " + password);
             objectOutputStream.writeObject(message);
 
-            Message response = (Message) objectInputStream.readObject();
-            if (response.message.equals("OK")){
+            String response = ((Message) objectInputStream.readObject()).message;
+            if (response.equals("OK")){
                 userName = login;
                 logged = true;
                 new MessageReceiver().start();
+                return true;
             }
-
-            if ("alreadyRegistered".equals(response)) {
+            else if ("LoginAlreadyRegistered".equals(response)) {
                 throw new LoginAlreadyRegistered();
+            }
+            else {
+                throw new UnknownServiceException(response);
             }
 
         } catch (IOException e) {
@@ -63,9 +64,10 @@ public class ServerAPI {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    public void login(String login, String password) throws WrongLogin, WrongPassword {
+    public void login(String login, String password) throws WrongLogin, WrongPassword, UserAlreadyOnline {
         if (logged) return;
 
         try {
@@ -84,6 +86,12 @@ public class ServerAPI {
             }
             else if ("WrongPassword".equals(response)){
                 throw new WrongPassword();
+            }
+            else if ("UserAlreadyOnline".equals(response)){
+                throw new UserAlreadyOnline();
+            }
+            else {
+                throw new UnknownServiceException(response);
             }
 
             new MessageReceiver().start();
