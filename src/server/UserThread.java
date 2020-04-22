@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class UserThread extends Thread {
     private UsersHandler usersHandler;
@@ -38,6 +40,15 @@ public class UserThread extends Thread {
         }
     }
 
+    public void sendUsersOnline(ArrayList<String> users) {
+        if (!logged) return;
+        try {
+            objectOutputStream.writeObject(users);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void sendSystemMessage(String message){
         try {
             objectOutputStream.writeObject(new Message("SERVER", userName, message));
@@ -56,6 +67,7 @@ public class UserThread extends Thread {
                         userName = args[1];
                         logged = true;
                         objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
+                        sendUsersOnline(usersHandler.getOnlineUsers());
                     }
                 } catch (Exception e) {
                     sendSystemMessage(e.getClass().getSimpleName());

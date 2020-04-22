@@ -54,6 +54,13 @@ public class Main {
         server.addMessageListener(message -> {
             System.out.println(message.sender + " -> " + message.receiver + ": " + message.message);
         });
+        server.addUsersOnlineListener(users -> {
+            System.out.println("Users online: ");
+            for(String str : users){
+                System.out.println(str);
+            }
+            System.out.println("");
+        });
 
         while (scanner.hasNextLine()){
             try {

@@ -4,14 +4,15 @@ import ServerAPI.Excepsions.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class MessengerClient {
     private Socket socket;
 
-    LinkedList<MessageListener> listeners;
+    ArrayList<MessageListener> messageListeners;
+    ArrayList<UsersOnlineListener> onlineUsersListener;
 
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
@@ -21,7 +22,8 @@ public class MessengerClient {
     private String userName = "";
 
     public MessengerClient(String host, int port) throws IOException {
-        listeners = new LinkedList();
+        messageListeners = new ArrayList();
+        onlineUsersListener = new ArrayList();
 
         socket = new Socket(host, port);
         objectInputStream = new ObjectInputStream(socket.getInputStream());
@@ -66,7 +68,9 @@ public class MessengerClient {
             Message message = new Message("", "SERVER", "login " + login + " " + password);
             objectOutputStream.writeObject(message);
 
-            String response = ((Message) objectInputStream.readObject()).message;
+            Object messageObject = objectInputStream.readObject();
+
+            String response = ((Message) messageObject).message;
             if (response.equals("OK")){
                 userName = login;
                 logged = true;
@@ -103,22 +107,42 @@ public class MessengerClient {
         }
     }
 
-    public synchronized void addMessageListener(MessageListener listener){
-        synchronized (listeners) {
-            this.listeners.add(listener);
+    public void addMessageListener(MessageListener listener){
+        synchronized (messageListeners) {
+            this.messageListeners.add(listener);
         }
     }
 
-    public synchronized void removeMessageListener(MessageListener listener){
-        synchronized (listeners) {
-            this.listeners.remove(listener);
+    public void removeMessageListener(MessageListener listener){
+        synchronized (messageListeners) {
+            this.messageListeners.remove(listener);
         }
     }
 
-    private synchronized void notifyListeners(Message message) {
-        synchronized (listeners) {
-            for (MessageListener listener : listeners) {
+    public void addUsersOnlineListener(UsersOnlineListener listener){
+        synchronized (onlineUsersListener){
+            onlineUsersListener.add(listener);
+        }
+    }
+
+    public void removeUsersOnlineListener(UsersOnlineListener listener){
+        synchronized (onlineUsersListener) {
+            this.onlineUsersListener.remove(listener);
+        }
+    }
+
+    private void notifyMessageListeners(Message message) {
+        synchronized (messageListeners) {
+            for (MessageListener listener : messageListeners) {
                 listener.messageReceived(message);
+            }
+        }
+    }
+
+    private void notifyUsersonlineListeners(ArrayList<String> users) {
+        synchronized (onlineUsersListener) {
+            for (UsersOnlineListener listener : onlineUsersListener) {
+                listener.update(users);
             }
         }
     }
@@ -141,21 +165,24 @@ public class MessengerClient {
             super.run();
             while(true){
                 try {
-                    Message message = (Message) objectInputStream.readObject();
-                    //if("SERVER".equals(message.sender)) {
-                    //    if("userNotFound".equals(message.message)){
-                    //
-                    //   }
-                    //}
-                    notifyListeners(message);
+                    Object messageObject = objectInputStream.readObject();
+
+                    if (messageObject instanceof ArrayList){
+                        notifyUsersonlineListeners((ArrayList<String>) messageObject);
+                    }
+                    else {
+                        Message message = (Message) messageObject;
+
+                        notifyMessageListeners(message);
+                    }
 
                 } catch (ClassNotFoundException e) {
-                    notifyListeners(new Message("SERVER", userName, "UnknownError"));
+                    notifyMessageListeners(new Message("SERVER", userName, "UnknownError"));
                     e.printStackTrace();
                     logged = false;
                     break;
                 } catch (IOException e) {
-                    notifyListeners(new Message("SERVER", userName, "ConectionClosed"));
+                    notifyMessageListeners(new Message("SERVER", userName, "ConectionClosed"));
                     logged = false;
                     break;
                 }

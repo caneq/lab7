@@ -2,7 +2,9 @@ package server;
 
 import ServerAPI.Excepsions.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class UsersHandler {
     private UserAuthorizator userAuthorizator;
@@ -17,11 +19,17 @@ public class UsersHandler {
         synchronized (userThreads){
             userThreads.put(name, userThread);
         }
+        for(UserThread user : userThreads.values()){
+            user.sendUsersOnline(getOnlineUsers());
+        }
     }
 
     public void removeUser(String name){
         synchronized (userThreads){
             userThreads.remove(name);
+        }
+        for(UserThread user : userThreads.values()){
+            user.sendUsersOnline(getOnlineUsers());
         }
     }
 
@@ -49,6 +57,10 @@ public class UsersHandler {
 
         }
         return false;
+    }
+
+    public ArrayList<String> getOnlineUsers(){
+        return new ArrayList<String>(userThreads.keySet());
     }
 
     public boolean register(String user, String password, UserThread thread) throws LoginAlreadyRegistered {
