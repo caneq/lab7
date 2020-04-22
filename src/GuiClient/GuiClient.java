@@ -122,30 +122,51 @@ public class GuiClient extends JFrame {
             button.setMaximumSize(new Dimension(button.getPreferredSize().width, button.getMaximumSize().height));
 
             button.addActionListener(e -> {
-                PrivateMessageFrame frame = new PrivateMessageFrame(user,300,400);
+
                 synchronized (openedPrivateFrames) {
                     if (!openedPrivateFrames.keySet().contains(user)) {
-                        openedPrivateFrames.put(user, frame);
-                        openedPrivateFrames.keySet().forEach(x -> System.out.println(x));
+                        createPrivateFrame(user);
                     }
                 }
-
-                frame.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent e) {
-                        synchronized (openedPrivateFrames){
-                            openedPrivateFrames.remove(user);
-                            openedPrivateFrames.keySet().forEach(x -> System.out.println(x));
-                        }
-                    }
-                });
-
-                frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-                frame.setVisible(true);
             });
         }
+        usersOnline.revalidate();
 
+    }
 
+    private void addPrivateFrame(String user ,PrivateMessageFrame frame){
+        synchronized (openedPrivateFrames){
+            if (!openedPrivateFrames.keySet().contains(user)) {
+                openedPrivateFrames.put(user, frame);
+                openedPrivateFrames.keySet().forEach(x -> System.out.println(x));
+                System.out.println("");
+            }
+        }
+    }
+
+    private void removePrivateFrame(String user){
+        synchronized (openedPrivateFrames){
+            openedPrivateFrames.remove(user);
+            openedPrivateFrames.keySet().forEach(x -> System.out.println(x));
+            System.out.println("");
+        }
+    }
+
+    private PrivateMessageFrame createPrivateFrame(String user){
+        PrivateMessageFrame frame = new PrivateMessageFrame(user,300,400);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                removePrivateFrame(user);
+            }
+        });
+
+        addPrivateFrame(user, frame);
+
+        frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        frame.setVisible(true);
+        return frame;
     }
 
     public static void main(String[] args) {
