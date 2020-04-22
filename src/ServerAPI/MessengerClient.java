@@ -9,8 +9,6 @@ import java.net.UnknownServiceException;
 import java.util.LinkedList;
 
 public class MessengerClient {
-    private final String HOST = "localhost";
-    private final int PORT = 1155;
     private Socket socket;
 
     LinkedList<MessageListener> listeners;
@@ -22,20 +20,13 @@ public class MessengerClient {
 
     private String userName = "";
 
-    public MessengerClient(){
+    public MessengerClient(String host, int port) throws IOException {
         listeners = new LinkedList();
-        try {
-            socket = new Socket(HOST, PORT);
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        }
-        catch (UnknownHostException exc) {
-            exc.printStackTrace();
-        }
 
-        catch (IOException exc) {
-            exc.printStackTrace();
-        }
+        socket = new Socket(host, port);
+        objectInputStream = new ObjectInputStream(socket.getInputStream());
+        objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+
     }
 
     public boolean register(String login, String password) throws LoginAlreadyRegistered {

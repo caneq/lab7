@@ -16,9 +16,16 @@ public class Main {
 
     public void run(){
         Scanner scanner = new Scanner(System.in);
+        MessengerClient server;
 
+        try {
+            server = new MessengerClient("localhost", 1155);
+        }
+        catch (Exception e){
+            System.out.println("Server not found");
+            return;
+        }
 
-        MessengerClient server = new MessengerClient();
 
         while (true) {
             System.out.println("login or register");
