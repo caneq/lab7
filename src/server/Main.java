@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class Main {
     private static final int PORT = 1155;
-    UsersHandler usersHandler  = new UsersHandler();
+    UsersHandler usersHandler  = new UsersHandler(new UserAuthorizator(new UserDb()));
 
     public static void main(String[] args){
         new Main().run();
