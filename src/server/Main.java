@@ -7,10 +7,17 @@ import java.net.Socket;
 import java.util.HashMap;
 
 public class Main {
-    private static final int PORT = 1155;
+    private static int PORT = 1155;
     UsersHandler usersHandler  = new UsersHandler(new UserAuthorizator(new UserDb()));
 
     public static void main(String[] args){
+        try {
+            PORT = Integer.parseInt(args[0]);
+        }
+        catch (Exception e){
+            PORT = 1155;
+        }
+        System.out.println("Port: " + PORT);
         new Main().run();
         System.out.println("server GG");
     }
