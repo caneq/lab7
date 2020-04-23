@@ -22,12 +22,16 @@ public class PrivateMessageFrame extends JFrame {
     private int height;
     private JTextField textField;
     private JScrollPane scrollPane;
+    private String userName;
+    private MessageSender messageSender;
 
 
-    public PrivateMessageFrame(String userName, int width, int height){
+    public PrivateMessageFrame(String userName, MessageSender messageSender ,int width, int height){
         super("Chat with " + userName);
         this.width = width;
         this.height = height;
+        this.userName = userName;
+        this.messageSender = messageSender;
         kit = Toolkit.getDefaultToolkit();
         FontUIResource f = new FontUIResource(new Font("Verdana", 0, 12));
         UIManager.put("font", f);
@@ -86,6 +90,8 @@ public class PrivateMessageFrame extends JFrame {
     }
 
     public void sendMessage(String msg){
+        messageSender.send(new Message("", userName, msg));
+
         Box horizontal = Box.createHorizontalBox();
 
         JLabel message = new JLabel("<html><body><p align=\"right\" style=\"width: "
@@ -97,12 +103,13 @@ public class PrivateMessageFrame extends JFrame {
         messages.add(horizontal);
 
         messages.revalidate();
+        message.repaint();
     }
 
     public static void main(String[] args) {
-        PrivateMessageFrame frame = new PrivateMessageFrame("test",400,500);
-        frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        frame.setVisible(true);
+        //PrivateMessageFrame frame = new PrivateMessageFrame("test",400,500);
+        //frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        //frame.setVisible(true);
     }
 
 }

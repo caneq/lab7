@@ -19,8 +19,9 @@ public class UsersHandler {
         synchronized (userThreads){
             userThreads.put(name, userThread);
         }
+        ArrayList<String> users = getOnlineUsers();
         for(UserThread user : userThreads.values()){
-            user.sendUsersOnline(getOnlineUsers());
+            user.sendUsersOnline(users);
         }
     }
 
@@ -28,8 +29,9 @@ public class UsersHandler {
         synchronized (userThreads){
             userThreads.remove(name);
         }
+        ArrayList<String> users = getOnlineUsers();
         for(UserThread user : userThreads.values()){
-            user.sendUsersOnline(getOnlineUsers());
+            user.sendUsersOnline(users);
         }
     }
 

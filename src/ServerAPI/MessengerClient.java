@@ -31,7 +31,7 @@ public class MessengerClient {
 
     }
 
-    public boolean register(String login, String password) throws LoginAlreadyRegistered {
+    public boolean register(String login, String password) throws LoginAlreadyRegistered, UnknownExcepsion {
         if (logged) return false;
 
         try {
@@ -49,7 +49,7 @@ public class MessengerClient {
                 throw new LoginAlreadyRegistered();
             }
             else {
-                throw new UnknownServiceException(response);
+                throw new UnknownExcepsion(response);
             }
 
         } catch (IOException e) {

@@ -78,6 +78,7 @@ public class UserThread extends Thread {
                         userName = args[1];
                         logged = true;
                         objectOutputStream.writeObject(new Message("SERVER", userName, "OK"));
+                        sendUsersOnline(usersHandler.getOnlineUsers());
                     }
                 } catch (Exception e) {
                     sendSystemMessage(e.getClass().getSimpleName());
