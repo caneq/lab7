@@ -178,6 +178,7 @@ public class GuiClient extends JFrame {
             closePrivateFrames();
         }
         logged = false;
+        client = null;
         updateAccountMenu();
         updateUsersOnline(new ArrayList<String>());
     }
@@ -300,6 +301,7 @@ public class GuiClient extends JFrame {
                 Box horizontal = Box.createHorizontalBox();
                 horizontal.add(Box.createHorizontalGlue());
                 JButton button = new JButton(user);
+                button.setPreferredSize(new Dimension(200, button.getPreferredSize().height));
                 horizontal.add(button);
                 horizontal.add(Box.createHorizontalGlue());
                 usersOnline.add(horizontal);
