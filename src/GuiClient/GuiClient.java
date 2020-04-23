@@ -17,6 +17,7 @@ public class GuiClient extends JFrame {
     private Action logOutAction;
     private Action connectToServerAction;
     private Box usersOnline;
+    private JLabel myNameLabel;
 
     private HashMap<String, PrivateMessageFrame> openedPrivateFrames;
     private boolean logged;
@@ -40,7 +41,6 @@ public class GuiClient extends JFrame {
         gradients.add(Color.WHITE);
         UIManager.put("RadioButton.background", Color.lightGray);
         UIManager.put("Button.gradient", gradients);
-
 
         Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
@@ -111,7 +111,14 @@ public class GuiClient extends JFrame {
         accountMenu.add(connectToServerAction);
         menuBar.add(accountMenu);
 
+        myNameLabel = new JLabel("Not logged");
+        myNameLabel.setForeground(Color.red);
+        Box myNameBox = Box.createHorizontalBox();
+        myNameLabel.setHorizontalAlignment(JLabel.LEFT);
+        myNameBox.add(myNameLabel);
+        myNameBox.add(Box.createHorizontalGlue());
         Box content = Box.createVerticalBox();
+        content.add(myNameBox);
         Box labelBox = Box.createHorizontalBox();
         content.add(labelBox);
         labelBox.add(Box.createHorizontalGlue());
@@ -166,9 +173,11 @@ public class GuiClient extends JFrame {
 
         }
 
+        logged = true;
+        setMyNameLabelText(client.getMyName());
+
         JOptionPane.showMessageDialog(GuiClient.this,"Logged as " + login.getText());
 
-        logged = true;
         updateAccountMenu();
     }
 
@@ -179,6 +188,7 @@ public class GuiClient extends JFrame {
         }
         logged = false;
         client = null;
+        setMyNameLabelText(null);
         updateAccountMenu();
         updateUsersOnline(new ArrayList<String>());
     }
@@ -209,6 +219,7 @@ public class GuiClient extends JFrame {
             try {
                 client.register(login.getText(), password.getText());
                 logged = true;
+                setMyNameLabelText(client.getMyName());
                 updateAccountMenu();
                 break;
             } catch (LoginAlreadyRegistered loginAlreadyRegistered) {
@@ -218,6 +229,17 @@ public class GuiClient extends JFrame {
                 JOptionPane.showMessageDialog(GuiClient.this, "Excepsion: " + e.getMessage());
             }
 
+        }
+    }
+
+    private void setMyNameLabelText(String text){
+        if(text != null){
+            myNameLabel.setText("Logged as " + text);
+            myNameLabel.setForeground(Color.BLACK);
+        }
+        else {
+            myNameLabel.setText("Not logged");
+            myNameLabel.setForeground(Color.red);
         }
     }
 
@@ -243,7 +265,8 @@ public class GuiClient extends JFrame {
                     client.dispose();
                 }
                 client = new MessengerClient(ip.getText(), Integer.parseInt(port.getText()));
-                logged = false;
+                setMyNameLabelText(client.getMyName());
+                myNameLabel.setText("Not logged");
                 closePrivateFrames();
                 updateUsersOnline(new ArrayList<>());
                 client.addUsersOnlineListener(users -> updateUsersOnline(users));

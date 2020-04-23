@@ -26,7 +26,7 @@ public class PrivateMessageFrame extends JFrame {
     private MessageSender messageSender;
 
 
-    public PrivateMessageFrame(String userName, MessageSender messageSender ,int width, int height){
+    public PrivateMessageFrame(String userName, MessageSender messageSender, int width, int height){
         super("Chat with " + userName);
         this.width = width;
         this.height = height;
@@ -46,6 +46,7 @@ public class PrivateMessageFrame extends JFrame {
 
     private void createGui(){
         Box content = Box.createVerticalBox();
+        content.add(new JLabel("Chat with " + userName));
         messages = Box.createVerticalBox();
         scrollPane = new JScrollPane(messages);
         content.add(scrollPane);
@@ -86,6 +87,15 @@ public class PrivateMessageFrame extends JFrame {
         messages.add(horizontal);
 
         messages.revalidate();
+        messages.repaint();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JScrollBar vertical = scrollPane.getVerticalScrollBar();
+                vertical.setValue( vertical.getMaximum() );
+            }
+        });
 
     }
 
@@ -104,12 +114,15 @@ public class PrivateMessageFrame extends JFrame {
 
         messages.revalidate();
         message.repaint();
-    }
 
-    public static void main(String[] args) {
-        //PrivateMessageFrame frame = new PrivateMessageFrame("test",400,500);
-        //frame.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        //frame.setVisible(true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JScrollBar vertical = scrollPane.getVerticalScrollBar();
+                vertical.setValue( vertical.getMaximum() );
+            }
+        });
+
     }
 
 }
