@@ -98,6 +98,10 @@ public class MessengerClient {
         }
     }
 
+    public String getMyName(){
+        return userName;
+    }
+
     public void sendMessage(Message message) {
         try {
             message.sender = userName;
